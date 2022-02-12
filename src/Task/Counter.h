@@ -1,7 +1,7 @@
 #ifndef TASK_COUNTER
 #define TASK_COUNTER
 
-#include <Task.h>
+#include <Task/Task.h>
 
 #include <unistd.h>
 #include <stdio.h>

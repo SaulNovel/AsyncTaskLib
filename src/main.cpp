@@ -1,64 +1,9 @@
-#include <Counter.h>
-#include <Fibonacci.h>
-
-// TODO
-#include <unistd.h>
-#include <sys/syscall.h>
-
-// TODO
-class Scheduler
-{   
-    std::unordered_map<int, std::unique_ptr<Task>> tasks_;
-    int count_;
-
-public:
-
-    static std::mutex print_mutex_;
-
-    Scheduler()
-    : count_(0) 
-    {}
-
-    ~Scheduler() {
-        for (auto& item : tasks_) {
-            item.second->join();
-        }
-    }
-
-    void addTask(int type) {
-        std::unique_ptr<Task> task;
-        if (type == 1) {
-            task = std::make_unique<Counter>(30);
-        }
-        else {
-            task = std::make_unique<Fibonacci>(100);
-        }
-        tasks_[count_++] = std::move(task);
-    }
-
-    const std::unordered_map<int, std::unique_ptr<Task>>& getTasks() {
-        return tasks_;
-    }
-
-    static void printRunningThreads() {
-
-        std::lock_guard<std::mutex> lock(print_mutex_);
-        std::cout << "------------------------------------------" << std::endl;
-        std::ostringstream cmd;
-        cmd << "ps -T | grep " << syscall(SYS_gettid);
-        system(cmd.str().c_str());
-        std::cout << "------------------------------------------" << std::endl;
-    }
-
-};
-
-
-std::mutex Scheduler::print_mutex_;
+#include <Task/Scheduler.h>
 
 void test() {
     Scheduler scheduler;
-    scheduler.addTask(1);
-    scheduler.addTask(2);
+    scheduler.addTask(Scheduler::counter, 100);
+    scheduler.addTask(Scheduler::fibonacci, 100);
 
     Scheduler::printRunningThreads();
 
@@ -73,7 +18,9 @@ void test() {
     sleep(3);
 
     // Pause counter
-    const std::unique_ptr<Task>& counter = tasks[0];
+    const std::unique_ptr<Task>& counter = scheduler.getTask(0);
+    //const std::unique_ptr<Task>& counter1 = tasks[0];
+
     counter->pause();
 
     int x = 3;
@@ -84,12 +31,11 @@ void test() {
 
     counter->resume();
 
-    const std::unique_ptr<Task>& fib = tasks[1];
+    const std::unique_ptr<Task> & fib = scheduler.getTask(1);
 
     fib->stop();
 
     Scheduler::printRunningThreads();
-
 }
 
 int main()
