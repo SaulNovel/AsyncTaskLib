@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.8)
+project(AsyncTaskLib)
+
+SET(GCC_COVERAGE_COMPILE_FLAGS "-fpermissive -Wno-deprecated-declarations -m64 -fexceptions -g -fPIC -g -Wall -Wno-long-long -Wconversion -Wwrite-strings -Wsign-compare")
+
+set(CMAKE_CXX_STANDARD 14)
+set(SOURCES ${SOURCES})
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+
+add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
+
+include_directories(src)
+
+add_subdirectory(src)
