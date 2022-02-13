@@ -1,5 +1,5 @@
-#ifndef TASK_FIBONACCI
-#define TASK_FIBONACCI
+#ifndef FIBONACCI
+#define FIBONACCI
 
 #include <Task/Task.h>
 
@@ -7,11 +7,14 @@ class Fibonacci : public Task
 {
 
 public:
-    Fibonacci(const int num) 
-    : num_(num), res_(0) 
+    Fibonacci(const int id, const int num) 
+    : Task(id), num_(num), res_(0) 
     {}
 
-    double progress() override {
+    // TODO: only possible to fetch result when the thread goes out of execute
+    // Throw if result not available yet?
+
+    double progress() const override {
         return 0.0;
     }
 
@@ -24,10 +27,7 @@ private:
     int fibonacci(int x) {
         if (x < 2) { return x; }
 
-        // TODO: interrupt does not work here
-        interrupt();
-
-        cancelPoint();
+        checkCommand();
 
         return fibonacci(x-1) + fibonacci(x-2);
     }

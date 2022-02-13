@@ -1,39 +1,49 @@
 #include <Task/Scheduler.h>
 
 void test() {
+
+    // TODO: mirar boost para la CLI
+
     Scheduler scheduler;
-    scheduler.addTask(Scheduler::counter, 100);
-    scheduler.addTask(Scheduler::fibonacci, 100);
+    //scheduler.addTask(Scheduler::counter, 1e3);
+    scheduler.addTask<Counter>(1e3);
+    scheduler.addTask<Fibonacci>(100);
+
 
     Scheduler::printRunningThreads();
 
-    const std::unordered_map<int, std::unique_ptr<Task>>& tasks = scheduler.getTasks();
-    for (auto& item : tasks) {
-        const std::unique_ptr<Task>& task = item.second;
-        task->start();
+    const std::vector<int> task_ids = scheduler.getTaskIds();
+    for (const int id : task_ids) {
+        scheduler.getTask(id);
     }
 
-    Scheduler::printRunningThreads();
-
-    sleep(3);
-
     // Pause counter
-    const std::unique_ptr<Task>& counter = scheduler.getTask(0);
+    Task& counter = scheduler.getTask(1);
     //const std::unique_ptr<Task>& counter1 = tasks[0];
 
-    counter->pause();
+    std::cout << counter << std::endl;
+
+    counter.pause();
 
     int x = 3;
     while(x-- > 0) {
         sleep(1);
-        std::cout << counter.get() << std::endl;
+        std::cout << counter << std::endl;
     }
 
-    counter->resume();
+    counter.resume();
+    std::cout << counter << std::endl;
 
-    const std::unique_ptr<Task> & fib = scheduler.getTask(1);
+    sleep(2);
 
-    fib->stop();
+    counter.stop();
+
+    std::cout << counter << std::endl;
+
+    
+    Task& fib = scheduler.getTask(2);
+    fib.stop();
+    std::cout << fib << std::endl;
 
     Scheduler::printRunningThreads();
 }

@@ -1,5 +1,5 @@
-#ifndef TASK_COUNTER
-#define TASK_COUNTER
+#ifndef COUNTER
+#define COUNTER
 
 #include <Task/Task.h>
 
@@ -11,12 +11,12 @@ class Counter : public Task
 {
 
 public:
-    Counter(int threshold = std::numeric_limits<int>::max()) 
-    : threshold_(threshold), count_(0) 
+    Counter(const int id, int threshold = std::numeric_limits<int>::max()) 
+    : Task(id), threshold_(threshold), count_(0) 
     {
     }
 
-    double progress() override {
+    double progress() const override {
         return 0.0;
     }
 
@@ -27,18 +27,18 @@ private:
     // Constructor of the task takes arguments
     // implements a method getResult
 
+    // 2 options:
+    // - return values from here  (template function)
+    // - do getters/setters -> wait till status() == completed on main thread
     void execute() {
-        sleep(1);
 
-        if (count_++ > threshold_) {
-            return;
-        }
+        while(++count_ < threshold_) {
 
-        std::cout << "count: " << count_ << std::endl;
-
-        interrupt();
+            checkCommand();
         
-        execute();
+            sleep(1);
+            std::cout << "count: " << count_ << std::endl;
+        }
     }
 
 };
