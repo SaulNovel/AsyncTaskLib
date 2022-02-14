@@ -6,11 +6,16 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
+
 #include <iostream>
 #include <sstream>
+
 #include <string>
 #include <unordered_map>
-#include <atomic>
+
+class Task;
+std::ostream& operator<<(std::ostream& os, Task& task);
 
 class Task
 {
@@ -31,8 +36,6 @@ public:
         pause,
         stop,
     };
-
-    static std::unordered_map<StateType, std::string> statusToStr;
 
 private:
     const int id_;
@@ -72,7 +75,7 @@ public:
         // If there is no thread associated, default constructed std::thread::id is returned
         if (thread_.get_id() !=  std::thread::id()) {
             std::ostringstream msg;
-            msg << "Cannot start task, '" << id() << "', it's running";
+            msg << "Cannot start task, '" << id() << "', it's running or completed";
             throw std::runtime_error(msg.str());
         }
         
@@ -82,7 +85,7 @@ public:
     }
 
     void pause() {
-        if (command_ != CommandType::run) {
+        if (command_ != CommandType::run || state_ == StateType::completed) {
             std::ostringstream msg;
             msg << "Cannot pause task, '" << id() << "', not running";
             throw std::runtime_error(msg.str());
@@ -95,14 +98,8 @@ public:
             return state_ != StateType::running;
         });
 
-        // TODO: it manages to enter and state is completed
-        //if (state_ == StateType::completed) {
-        //    std::ostringstream msg;
-        //    msg << "Cannot pause task, '" << id() << "', completed";
-        //    throw std::runtime_error(msg.str());
-        //}
-
         std::cout << "Pausing  task '" << id() << "'" << std::endl;
+
     }
 
     void resume() {
@@ -112,27 +109,23 @@ public:
             throw std::runtime_error(msg.str());
         }
         {
-        command_ = CommandType::run;
-        std::unique_lock<std::mutex> lock(mutex_control_);
-        condition_control_.notify_one();
+            std::unique_lock<std::mutex> lock(mutex_control_);
+            command_ = CommandType::run;
+            condition_control_.notify_one();
         }
 
-        //TODO
         {
-        // Wait till thread toggles status to running
-        std::unique_lock<std::mutex> lock(mutex_state_);
-        condition_state_.wait(lock, [&]() {
-            return state_ == StateType::running;
-        });
+            // Wait till thread toggles status to running
+            std::unique_lock<std::mutex> lock(mutex_state_);
+            condition_state_.wait(lock, [&]() {
+                return state_ == StateType::running;
+            });
         }
 
         std::cout << "Resuming  task '" << id() << "'" << std::endl;
     }
 
     void stop() {
-
-        std::cout << (state_ == StateType::completed ? "Task completed" : "Task stopped") << std::endl;
-
 
         if (command_ != CommandType::run && command_ != CommandType::pause) {
             std::ostringstream msg;
@@ -154,6 +147,13 @@ public:
         }
 
         std::cout << "Stopping  task '" << id() << "'" << std::endl;
+    }
+
+    void joinTask() {
+        std::unique_lock<std::mutex> lock(mutex_state_);
+        condition_state_.wait(lock, [&]() {
+            return (state_ == StateType::completed || state_ == StateType::stopped);
+        });
     }
 
     const int id() const {
@@ -178,25 +178,7 @@ public:
 
     virtual double progress() const = 0;
 
-    friend std::ostream& operator<<(std::ostream& os, Task& task) {
-        os << "Task: '" << task.id() << "' status: '" << statusToStr[task.status()]  << "' progress: " << task.progress() << "%";
-        return os;
-    }
-
 protected:
-
-// TODO
-std::unordered_map<Task::CommandType, std::string> Task::commandToStr = {
-    {Task::CommandType::pause, "pause"},
-    {Task::CommandType::run, "run"},
-    {Task::CommandType::stop, "stop"},
-};
-std::unordered_map<Task::StateType, std::string> statusToStr2 = {
-    {Task::StateType::running, "running"},
-    {Task::StateType::paused, "paused"},
-    {Task::StateType::stopped, "stopped"},
-    {Task::StateType::completed, "completed"},
-};
 
     void checkCommand() {
         switch(command_) {
@@ -215,7 +197,6 @@ std::unordered_map<Task::StateType, std::string> statusToStr2 = {
 
                     if (command_ == CommandType::run) {
 
-                        // TODO:
                         std::unique_lock<std::mutex> lock(mutex_state_);
                         state_ = StateType::running;
                         condition_state_.notify_one();
@@ -230,7 +211,6 @@ std::unordered_map<Task::StateType, std::string> statusToStr2 = {
             }
             case CommandType::run:
             {
-                // Thread already running, nothng to do
                 return;
             }
             case CommandType::stop:

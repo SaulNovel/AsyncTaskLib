@@ -12,6 +12,7 @@ add_executable(
 target_link_libraries(
     ${BINARY} 
     gtest_main
+    tasklib
 )
 
 include(GoogleTest)

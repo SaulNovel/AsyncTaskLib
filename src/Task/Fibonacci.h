@@ -11,16 +11,13 @@ public:
     : Task(id), num_(num), res_(0) 
     {}
 
-    // TODO: only possible to fetch result when the thread goes out of execute
-    // Throw if result not available yet?
-
     double progress() const override {
         return 0.0;
     }
 
 private:
     int num_;
-    int res_;
+    std::atomic<int> res_;
 
 private:
 

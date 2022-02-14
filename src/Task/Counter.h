@@ -3,9 +3,7 @@
 
 #include <Task/Task.h>
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
+using namespace std::chrono_literals;
 
 class Counter : public Task
 {
@@ -24,20 +22,13 @@ private:
     const int threshold_;
     int count_;
 
-    // Constructor of the task takes arguments
-    // implements a method getResult
-
-    // 2 options:
-    // - return values from here  (template function)
-    // - do getters/setters -> wait till status() == completed on main thread
     void execute() {
 
         while(++count_ < threshold_) {
 
             checkCommand();
         
-            sleep(1);
-            std::cout << "count: " << count_ << std::endl;
+            std::this_thread::sleep_for(100ms);
         }
     }
 

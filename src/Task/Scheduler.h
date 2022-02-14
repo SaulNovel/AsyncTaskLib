@@ -1,8 +1,7 @@
 #ifndef SCHEDULER
 #define SCHEDULER
 
-#include <Task/Counter.h>
-#include <Task/Fibonacci.h>
+#include <Task/Task.h>
 
 #include <vector>
 
@@ -27,16 +26,13 @@ public:
     {}
 
     ~Scheduler() {
-        for (auto& item : tasks_) {
-            item.second->join();
-        }
     }
 
     template<class T, class I>
-    Task& addTask(const I& input) {
+    T& addTask(const I& input) {
         count_++;
-        std::unique_ptr<Task> task = std::make_unique<T>(count_, input);
-        Task& taskRef = *task;
+        auto task = std::make_unique<T>(count_, input);
+        T& taskRef = *task;
         task->start();
         tasks_[count_] = std::move(task);
 
@@ -61,6 +57,14 @@ public:
         std::ostringstream msg;
         msg << "Task with id '" << id << "' not found";
         throw std::runtime_error(msg.str());
+    }
+
+    void printStatus() {
+        std::lock_guard<std::mutex> lock(print_mutex_);
+        for (auto& item : tasks_) {
+            Task& task = *item.second;
+            std::cout << task << std::endl;
+        }
     }
 
     static void printRunningThreads() {

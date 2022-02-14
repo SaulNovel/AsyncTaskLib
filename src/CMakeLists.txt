@@ -1,7 +1,7 @@
-set(BINARY program)
+set(LIBRARY tasklib)
 
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp)
 
 find_package(Threads REQUIRED)
-add_executable(${BINARY}_run ${SOURCES})
-target_link_libraries(${BINARY}_run Threads::Threads)
+add_library(${LIBRARY} ${SOURCES})
+target_link_libraries(${LIBRARY} Threads::Threads)
