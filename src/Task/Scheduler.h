@@ -53,7 +53,6 @@ public:
         return task_ids;
     }
 
-    // TODO: Task const & getTask(const int id)
     Task& getTask(const int id) {
         if (tasks_.count(id)) {
             return *tasks_[id];   

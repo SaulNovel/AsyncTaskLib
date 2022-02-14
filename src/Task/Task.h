@@ -23,8 +23,6 @@ public:
         paused,
         stopped,
         completed,
-
-
     };
 
     /* Commands are modified by parent thread */
@@ -63,6 +61,7 @@ public:
         if (command_ != CommandType::stop) {
             stop();
         }
+
         join();
     }
 
@@ -78,6 +77,8 @@ public:
         }
         
         thread_ = std::thread(&Task::callbackFuntion, this);
+
+        std::cout << "Starting  task '" << id() << "'" << std::endl;
     }
 
     void pause() {
@@ -110,16 +111,29 @@ public:
             msg << "Cannot resume task, '" << id() << "', not paused";
             throw std::runtime_error(msg.str());
         }
-
+        {
         command_ = CommandType::run;
-
         std::unique_lock<std::mutex> lock(mutex_control_);
         condition_control_.notify_one();
+        }
+
+        //TODO
+        {
+        // Wait till thread toggles status to running
+        std::unique_lock<std::mutex> lock(mutex_state_);
+        condition_state_.wait(lock, [&]() {
+            return state_ == StateType::running;
+        });
+        }
 
         std::cout << "Resuming  task '" << id() << "'" << std::endl;
     }
 
     void stop() {
+
+        std::cout << (state_ == StateType::completed ? "Task completed" : "Task stopped") << std::endl;
+
+
         if (command_ != CommandType::run && command_ != CommandType::pause) {
             std::ostringstream msg;
             msg << "Cannot stop task, '" << id() << "', not running";
@@ -138,6 +152,7 @@ public:
                 return (state_ == StateType::completed || state_ == StateType::stopped);
             });
         }
+
         std::cout << "Stopping  task '" << id() << "'" << std::endl;
     }
 
@@ -164,11 +179,24 @@ public:
     virtual double progress() const = 0;
 
     friend std::ostream& operator<<(std::ostream& os, Task& task) {
-        os << "Task: '" << task.id() << "' status: '" << statusToStr[task.status()] << "' progress: " << task.progress() << "%";
+        os << "Task: '" << task.id() << "' status: '" << statusToStr[task.status()]  << "' progress: " << task.progress() << "%";
         return os;
     }
 
 protected:
+
+// TODO
+std::unordered_map<Task::CommandType, std::string> Task::commandToStr = {
+    {Task::CommandType::pause, "pause"},
+    {Task::CommandType::run, "run"},
+    {Task::CommandType::stop, "stop"},
+};
+std::unordered_map<Task::StateType, std::string> statusToStr2 = {
+    {Task::StateType::running, "running"},
+    {Task::StateType::paused, "paused"},
+    {Task::StateType::stopped, "stopped"},
+    {Task::StateType::completed, "completed"},
+};
 
     void checkCommand() {
         switch(command_) {
@@ -186,6 +214,11 @@ protected:
                     });
 
                     if (command_ == CommandType::run) {
+
+                        // TODO:
+                        std::unique_lock<std::mutex> lock(mutex_state_);
+                        state_ = StateType::running;
+                        condition_state_.notify_one();
                         return;
                     }
 
@@ -227,7 +260,10 @@ private:
         }
         
         std::unique_lock<std::mutex> lock(mutex_state_);
-        state_ = completed ? StateType::completed : StateType::stopped;        
+        state_ = completed ? StateType::completed : StateType::stopped;
+
+        std::cout << (state_ == StateType::completed ? "Task completed\n" : "Task stopped\n") << std::endl;
+
         condition_state_.notify_one();
     }
 
