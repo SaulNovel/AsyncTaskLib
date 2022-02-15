@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
 
             if (tokens.size() > 2) {
                 auto it = std::find_if(tokens.begin()+2, tokens.end(), [](const std::string& token){
-                    return token != " ";
+                    return token != "";
                 });
                 if (it != tokens.end()) {
                     std::cout << "Please introduce a valid command followed by and existing <task_id>/<task_type_id>" << std::endl;
