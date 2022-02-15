@@ -1,88 +1,107 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <functional>
+#include <algorithm>
 
 #include <Task/Scheduler.h>
+#include <Task/TestTask.h>
 #include <Task/Counter.h>
 #include <Task/Fibonacci.h>
 
-namespace po = boost::program_options;
+#define INVALID_TASK_ID -1
 
+namespace po = boost::program_options;
+using namespace std::chrono_literals;
+
+static Scheduler scheduler;
 
 enum class TaskType
 {
+    test,
     counter,
     fibonacci
 };
 
-static Scheduler scheduler;
+class TaskFactory {
+
+public:
+
+    Task& createTask(const int task_type_id) {
+        const TaskType task_type = static_cast<TaskType>(task_type_id);
+
+        switch(task_type) {
+        case TaskType::test:
+            return scheduler.addTask<TestTask>(10ms);
+        case TaskType::counter:
+            return scheduler.addTask<Counter>(1e3);
+        case TaskType::fibonacci:
+            return scheduler.addTask<Fibonacci>(1e3);
+        default:
+            throw std::invalid_argument("Task type id: '" + std::to_string(task_type_id) + "' not supported");
+        }
+    }
+};
 
 namespace CliCommands {
 
 void start(const int task_type_id) {
-    const TaskType task_type = static_cast<TaskType>(task_type_id);
-    
-    int task_id = -1;
-    switch(task_type) {
-    case TaskType::counter:
-        task_id = scheduler.addTask<Counter>(100).id();
-        break;
-    case TaskType::fibonacci:
-        task_id = scheduler.addTask<Fibonacci>(100).id();
-        return;
+
+    if (task_type_id == INVALID_TASK_ID) {
+        throw std::invalid_argument("parameter <task_type_id> not found");
     }
 
-    if (task_id == -1) {
-        std::cout << "Error while creating task" << std::endl;
-    }
+    TaskFactory task_factory;    
+    auto& task = task_factory.createTask(task_type_id);
 
-    std::cout << "Task with id '" << task_id << "' started" << std::endl;
+    std::cout << " -> " << task << std::endl;
 }
 
 void pause(const int task_id) {
+
+    if (task_id == INVALID_TASK_ID) {
+        throw std::invalid_argument("parameter <task_id> not found");
+    }
+
     auto& task = scheduler.getTask(task_id);
     task.pause();
-    std::cout << task << std::endl;
+    std::cout << " -> " << task << std::endl;
 }
 
 void resume(const int task_id) {
+
+    if (task_id == INVALID_TASK_ID) {
+        throw std::invalid_argument("parameter <task_id> not found");
+    }
+
     auto& task = scheduler.getTask(task_id);
     task.resume();
-    std::cout << task << std::endl;
+    std::cout << " -> " << task << std::endl;
 }
 
 void stop(const int task_id) {
+
+    if (task_id == INVALID_TASK_ID) {
+        throw std::invalid_argument("parameter <task_id> not found");
+    }
+
     auto& task = scheduler.getTask(task_id);
     task.stop();
-    std::cout << task << std::endl;
+    std::cout << " -> " << task << std::endl;
 }
 
-void statusTask(const int task_id) {
+void status(const int task_id) {
+    if (task_id == INVALID_TASK_ID) {
+        for(int task_id : scheduler.getTaskIds()) {
+            auto& task = scheduler.getTask(task_id);
+            std::cout << " -> " << task << std::endl;
+        }
+        return;
+    }
+
     auto& task = scheduler.getTask(task_id);
-    std::cout << task << std::endl;
+    std::cout << " -> " << task << std::endl;
 }
 
-void status(int i = 0) {
-    for(int task_id : scheduler.getTaskIds()) {
-        auto& task = scheduler.getTask(task_id);
-        std::cout << task << std::endl;
-    }
-}
-
-}
-
-namespace Util
-{
-    int strToInteger(const std::string& str) {
-        try {
-            int val = std::stoi(str);
-            return val;
-        }
-        catch (const std::exception& e) {
-            std::cout << "Cannot convert second argument to integer: " << e.what() << std::endl;
-            return -1;
-        }
-    }
 }
 
 int main(int argc, char* argv[]) 
@@ -100,70 +119,83 @@ int main(int argc, char* argv[])
     ("quit", "gracefully shut down")
     ;
 
-    // Parse the command line
     po::variables_map vm;
-    // Parse and store arguments
     po::store(po::parse_command_line(argc, argv, desc), vm);
-    // Must be called after parsing and storing
     po::notify(vm);
 
-    if (vm.count("help")) {
-        std::cout << desc << "\n";
-        return 1;
+    if (!vm.empty()) {
+        std::cout << desc << std::endl;
+        return 0;  
     }
 
     using CommandTable = std::unordered_map<std::string, std::function<void(int)>>;
-
     CommandTable commands;
     commands["start"] = CliCommands::start;
     commands["pause"] = CliCommands::pause;
     commands["resume"] = CliCommands::resume;
     commands["stop"] = CliCommands::stop;
-    commands["statusTask"] = CliCommands::statusTask;
     commands["status"] = CliCommands::status;
     
     while (true) {
 
-        std::string input;
-        std::cout << ">";
-        getline (std::cin, input);
-  
-        if (input == "quit") {
-            return 0;
-        }
-        
-        std::vector<std::string> command;
-        
-        std::istringstream iss(input);
-        for(std::string str; iss >> str;) { 
-            command.push_back(str);
-        }
-        
-        if (command.empty() || command.size() > 2) {
-            std::cout << "Please introduce max 2 words separated by an space" << std::endl;
-            continue;
-        }
-        
-        if (commands.count(command[0]) == 0) {
-            std::cout << "Option not supported" << std::endl;
-            continue;
-        }
-        
-        command[0] = (command[0] == "status" && command.size() > 1) ? "statusTask" : command[0];
-        
-        if (commands.count(command[0])) {        
-            auto& func = commands[command[0]];
-            int param = 0;
-            if (command.size() > 1) {
-                int res = Util::strToInteger(command[1]);
-                if (res == -1) {
-                    continue;
+        try {
+
+            std::string input;
+            std::cout << "> ";
+            getline(std::cin, input);
+              
+            std::istringstream iss(input);
+            std::vector<std::string> tokens;
+            std::string token;
+            while (std::getline(iss, token, ' ')) {
+                tokens.push_back(token);
+            }
+
+            auto it = std::find(tokens.begin(), tokens.end(), "quit");
+            if (it != tokens.end()) {
+                return 0;
+            }
+
+            if (tokens.empty()) { 
+                continue; 
+            }
+
+            std::string command = tokens[0];
+            if (commands.count(command) == 0) {
+                std::cout << "Option '" << command << "' not supported" << std::endl;
+                continue;
+            }
+
+            int cmd_argument = INVALID_TASK_ID;
+            if (tokens.size() > 1) {
+                try{
+                    cmd_argument = std::stoi(tokens[1]);
                 }
-                param = res;
+                catch(const std::exception& e) {
+                    std::cout << "Argument '" << tokens[1] << "' not an exisiting <task_id>/<task_type_id>" << std::endl;
+                    continue;
+                }              
+            }
+
+            if (tokens.size() > 2) {
+                auto it = std::find_if(tokens.begin()+2, tokens.end(), [](const std::string& token){
+                    return token != " ";
+                });
+                if (it != tokens.end()) {
+                    std::cout << "Please introduce a valid command followed by and existing <task_id>/<task_type_id>" << std::endl;
+                    continue;                    
+                }
             }
             
-            func(param);
+            auto& func = commands[command];
+            func(cmd_argument);
+
+        }   
+        catch (const std::exception& e) {
+            std::cout << e.what() << std::endl;
         }
     }
+
+    return 0;
 
 }

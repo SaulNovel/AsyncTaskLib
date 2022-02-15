@@ -5,10 +5,6 @@
 
 #include <vector>
 
-// TODO
-#include <unistd.h>
-#include <sys/syscall.h>
-
 class Scheduler
 { 
 
@@ -65,16 +61,6 @@ public:
             Task& task = *item.second;
             std::cout << task << std::endl;
         }
-    }
-
-    static void printRunningThreads() {
-
-        std::lock_guard<std::mutex> lock(print_mutex_);
-        std::cout << "------------------------------------------" << std::endl;
-        std::ostringstream cmd;
-        cmd << "ps -T | grep " << syscall(SYS_gettid);
-        system(cmd.str().c_str());
-        std::cout << "------------------------------------------" << std::endl;
     }
 };
 

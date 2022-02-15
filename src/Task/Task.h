@@ -60,7 +60,7 @@ public:
     command_(CommandType::run)
     {}
 
-    ~Task() {
+    virtual ~Task() {
         if (command_ != CommandType::stop) {
             stop();
         }
@@ -80,8 +80,6 @@ public:
         }
         
         thread_ = std::thread(&Task::callbackFuntion, this);
-
-        std::cout << "Starting  task '" << id() << "'" << std::endl;
     }
 
     void pause() {
@@ -97,9 +95,6 @@ public:
         condition_state_.wait(lock, [&]() {
             return state_ != StateType::running;
         });
-
-        std::cout << "Pausing  task '" << id() << "'" << std::endl;
-
     }
 
     void resume() {
@@ -115,14 +110,12 @@ public:
         }
 
         {
-            // Wait till thread toggles status to running
+            // Wait till thread changes status to running
             std::unique_lock<std::mutex> lock(mutex_state_);
             condition_state_.wait(lock, [&]() {
                 return state_ == StateType::running;
             });
         }
-
-        std::cout << "Resuming  task '" << id() << "'" << std::endl;
     }
 
     void stop() {
@@ -140,13 +133,12 @@ public:
         }
 
         {
+            // Wait till thread changes status to completed/stopped
             std::unique_lock<std::mutex> lock(mutex_state_);
             condition_state_.wait(lock, [&]() {
                 return (state_ == StateType::completed || state_ == StateType::stopped);
             });
         }
-
-        std::cout << "Stopping  task '" << id() << "'" << std::endl;
     }
 
     void joinTask() {
@@ -190,13 +182,13 @@ protected:
                     condition_state_.notify_one();
                 }
                 {
+                    // Wait till top thread changes command to pause
                     std::unique_lock<std::mutex> lock(mutex_control_);
                     condition_control_.wait(lock, [&]() {
                         return command_ != CommandType::pause;
                     });
 
                     if (command_ == CommandType::run) {
-
                         std::unique_lock<std::mutex> lock(mutex_state_);
                         state_ = StateType::running;
                         condition_state_.notify_one();
@@ -231,7 +223,6 @@ private:
             completed = true;
         } 
         catch (const StopException& e) {
-            std::cout << "Task '" << id() << "' exception thrown: " << e.what() << std::endl;
             completed = false;
         }
         catch (const std::exception& e) {
@@ -241,8 +232,6 @@ private:
         
         std::unique_lock<std::mutex> lock(mutex_state_);
         state_ = completed ? StateType::completed : StateType::stopped;
-
-        std::cout << (state_ == StateType::completed ? "Task completed\n" : "Task stopped\n") << std::endl;
 
         condition_state_.notify_one();
     }
