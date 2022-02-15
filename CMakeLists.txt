@@ -11,6 +11,8 @@ add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
 
 include_directories(src)
 include_directories(test)
+include_directories(cli)
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(cli)

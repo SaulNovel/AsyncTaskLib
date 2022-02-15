@@ -71,17 +71,22 @@ void status(int i = 0) {
 
 }
 
-using CommandTable = std::unordered_map<std::string, std::function<void(int)>>;
+namespace Util
+{
+    int strToInteger(const std::string& str) {
+        try {
+            int val = std::stoi(str);
+            return val;
+        }
+        catch (const std::exception& e) {
+            std::cout << "Cannot convert second argument to integer: " << e.what() << std::endl;
+            return -1;
+        }
+    }
+}
 
 int main(int argc, char* argv[]) 
 {
-    CommandTable commands;
-    commands["start"] = CliCommands::start;
-    commands["pause"] = CliCommands::pause;
-    commands["resume"] = CliCommands::resume;
-    commands["stop"] = CliCommands::stop;
-    commands["statusTask"] = CliCommands::statusTask;
-    commands["status"] = CliCommands::status;
 
     po::options_description desc("Allowed options");
     desc.add_options()
@@ -107,5 +112,58 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // TODO: process input
+    using CommandTable = std::unordered_map<std::string, std::function<void(int)>>;
+
+    CommandTable commands;
+    commands["start"] = CliCommands::start;
+    commands["pause"] = CliCommands::pause;
+    commands["resume"] = CliCommands::resume;
+    commands["stop"] = CliCommands::stop;
+    commands["statusTask"] = CliCommands::statusTask;
+    commands["status"] = CliCommands::status;
+    
+    while (true) {
+
+        std::string input;
+        std::cout << ">";
+        getline (std::cin, input);
+  
+        if (input == "quit") {
+            return 0;
+        }
+        
+        std::vector<std::string> command;
+        
+        std::istringstream iss(input);
+        for(std::string str; iss >> str;) { 
+            command.push_back(str);
+        }
+        
+        if (command.empty() || command.size() > 2) {
+            std::cout << "Please introduce max 2 words separated by an space" << std::endl;
+            continue;
+        }
+        
+        if (commands.count(command[0]) == 0) {
+            std::cout << "Option not supported" << std::endl;
+            continue;
+        }
+        
+        command[0] = (command[0] == "status" && command.size() > 1) ? "statusTask" : command[0];
+        
+        if (commands.count(command[0])) {        
+            auto& func = commands[command[0]];
+            int param = 0;
+            if (command.size() > 1) {
+                int res = Util::strToInteger(command[1]);
+                if (res == -1) {
+                    continue;
+                }
+                param = res;
+            }
+            
+            func(param);
+        }
+    }
+
 }
