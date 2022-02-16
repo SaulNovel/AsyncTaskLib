@@ -3,10 +3,10 @@
 #include <functional>
 #include <algorithm>
 
-#include <Task/Scheduler.h>
-#include <Task/TestTask.h>
-#include <Task/Counter.h>
-#include <Task/Fibonacci.h>
+#include "Scheduler.h"
+#include "TestTask.h"
+#include "Counter.h"
+#include "Fibonacci.h"
 
 #define INVALID_TASK_ID -1
 

@@ -1,19 +1,22 @@
 set(BINARY program_test)
 
-file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES true *.h *.cpp)
+Set(SOURCES
+    mainTests.cpp
+)
 
 add_subdirectory(googletest)
 
 add_executable(
     ${BINARY} 
-    ${TEST_SOURCES}
+    ${SOURCES}
 )
 
-target_link_libraries(
-    ${BINARY} 
+target_link_libraries(${BINARY}
     gtest_main
     tasklib
 )
 
-include(GoogleTest)
-gtest_discover_tests(${BINARY})
+add_test(
+    NAME ${BINARY}
+    COMMAND ${BINARY}
+)

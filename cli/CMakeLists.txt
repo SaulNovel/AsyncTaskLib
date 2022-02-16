@@ -1,6 +1,10 @@
+project(cli)
+
 set(BINARY program_cli)
 
-file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp)
+Set(SOURCES
+    main.cpp
+)
 
 find_package(Boost COMPONENTS program_options REQUIRED)
 find_package(Boost 1.65.1 COMPONENTS program_options) 

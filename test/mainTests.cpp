@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
-#include <Task/Scheduler.h>
-#include <Task/Counter.h>
-#include <Task/TestTask.h>
 
 #include <cstdlib>
 #include <vector>
 #include <unordered_set>
+
+#include "Scheduler.h"
+#include "Counter.h"
+#include "TestTask.h"
 
 using std::vector;
 using std::unordered_set;

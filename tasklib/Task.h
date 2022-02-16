@@ -1,8 +1,6 @@
 #ifndef TASK
 #define TASK
 
-#include <Task/StopException.h>
-
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -13,6 +11,8 @@
 
 #include <string>
 #include <unordered_map>
+
+#include "StopException.h"
 
 class Task;
 std::ostream& operator<<(std::ostream& os, Task& task);

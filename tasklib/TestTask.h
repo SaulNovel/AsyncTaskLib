@@ -1,7 +1,7 @@
 #ifndef TEST_TASK
 #define TEST_TASK
 
-#include <Task/Task.h>
+#include "Task.h"
 
 class TestTask : public Task
 {

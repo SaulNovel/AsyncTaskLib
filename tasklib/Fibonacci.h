@@ -1,7 +1,7 @@
 #ifndef FIBONACCI
 #define FIBONACCI
 
-#include <Task/Task.h>
+#include "Task.h"
 
 class Fibonacci : public Task
 {
