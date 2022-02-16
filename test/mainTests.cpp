@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
-
 #include <cstdlib>
 #include <vector>
 #include <unordered_set>
+
+#include "gtest/gtest.h"
 
 #include "Scheduler.h"
 #include "Counter.h"

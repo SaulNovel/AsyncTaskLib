@@ -1,8 +1,9 @@
 #ifndef COUNTER
 #define COUNTER
 
-#include "Task.h"
 #include <math.h>
+
+#include "Task.h"
 
 using namespace std::chrono_literals;
 
