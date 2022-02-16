@@ -12,7 +12,12 @@ public:
     {
     }
 
-    double progress() const override {
+    double progress() override {
+        StateType state = status();
+        if (state == StateType::completed || state == StateType::stopped) {
+            return 100.0;
+        }
+
         return 0.0;
     }
 
@@ -23,9 +28,7 @@ private:
     void execute() {
 
         while(run_) {
-
             checkCommand();
-        
             std::this_thread::sleep_for(sleep_duration_);
         }
     }

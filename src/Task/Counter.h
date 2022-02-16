@@ -2,6 +2,7 @@
 #define COUNTER
 
 #include <Task/Task.h>
+#include <math.h>
 
 using namespace std::chrono_literals;
 
@@ -14,20 +15,19 @@ public:
     {
     }
 
-    double progress() const override {
-        return 0.0;
+    double progress() override {
+        double val = 100.0 * static_cast<double>(count_) / threshold_;
+        return std::ceil(val * 100.0) / 100.0;
     }
 
 private:
     const int threshold_;
-    int count_;
+    std::atomic<int> count_;
 
     void execute() {
 
         while(++count_ < threshold_) {
-
             checkCommand();
-        
             std::this_thread::sleep_for(10ms);
         }
     }

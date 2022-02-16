@@ -89,7 +89,7 @@ public:
 
     const StateType status() { return state_; }
 
-    virtual double progress() const = 0;
+    virtual double progress() = 0;
 
 protected:
     void checkCommand();
