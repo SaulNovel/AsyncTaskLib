@@ -15,8 +15,6 @@ class Scheduler
 
 public:
 
-    static std::mutex print_mutex_;
-
     Scheduler()
     : count_(0) 
     {}

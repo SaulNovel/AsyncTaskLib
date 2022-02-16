@@ -30,7 +30,7 @@ public:
         completed,
     };
 
-    /* Commands are modified by parent thread */
+    /* Commands are modified by main thread */
     enum class CommandType {
         run,
         pause,
@@ -73,15 +73,40 @@ public:
 
     const int id() const { return id_; }
 
+
+    /**
+     * Calls to std::thread constructor which associates thread_ with a thread of execution.
+     * Runs task
+     * 
+     * @throw runtime_error if thread_ has no thread associated
+    */
     void start();
 
+    /**
+     * Switches command to pause
+     * Locks main thread till status is switched to paused
+     * 
+     * @throw runtime_error if thread cannot pause
+    */
     void pause();
 
+    /**
+     * Switches command to run and notifies
+     * Locks main thread till status is switched to running
+     * 
+     * @throw runtime_error if thread cannot resume
+    */
     void resume();
 
+    /**
+     * Switches command to stop and notifies
+     * Locks main thread till status is switched to stopped/completed
+     * 
+     * @throw runtime_error if thread cannot stop
+    */
     void stop();
 
-    /* top thread waits till status switches to stoppped/completed */
+    /* Locks main thread till inner thread finishes its execution */
     void joinTask();
 
     /* std::thread builtin */
@@ -92,13 +117,29 @@ public:
     virtual double progress() = 0;
 
 protected:
+
+    /** 
+     * Updates state and notifies to main thread
+     * Must be added in execute's body of derived class 
+     * 
+     * @throw StopException if stop command is detected
+    */
     void checkCommand();
 
 private:
 
+    /**
+     * Callable function, it is a wrapper of execute()
+     * Updates state to running when called
+     * Updates state to completed/stopped (if StopException thrown)
+     * User must re-throw StopException if captured
+    */
     void callbackFuntion();
 
-    /* TODO: Override this function to customize a task */
+    /**
+     * Derived class must implement execute's function that will be called in the thread context
+     * Periodically calls checkCommand (User-defined function)
+    */
     virtual void execute() = 0;
 };
 

@@ -1,11 +1,12 @@
 # Requirements
 
   * g++ 7.5.0 or newer
-  * Boost 1.65.1 or newer
-    * The `boost/program_options.hpp` header must be available for the cli application
   * cmake 3.8 or newer
+  * POSIX Threads
   * googletest 1.11.0 (e2239ee6 (HEAD, tag: release-1.11.0))
     * The `gtest/gtest.h` header must be available for the test program
+  * Boost 1.65.1 or newer
+    * The `boost/program_options.hpp` header must be available for the cli application
 
 ## Installed Packages
 
@@ -19,7 +20,7 @@ libboost-program-options1.65.1/bionic,now 1.65.1+dfsg-0ubuntu5 amd64 [installed,
 
 Project tree
 
-* [AsyncTaskLib](./AsyncTaskLib-md)
+* [AsyncTaskLib-md](./AsyncTaskLib-md)
   * [tasklib](./tasklib)
     * [Task.h](./tasklib/Task.h)
     * [Task.cpp](./tasklib/Task.cpp)
