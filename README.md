@@ -1,12 +1,11 @@
 # Requirements
 
   * g++ 7.5.0 or newer
-  * cmake 3.8 or newer
-  * POSIX Threads
-  * googletest 1.11.0 (e2239ee6 (HEAD, tag: release-1.11.0))
-    * The `gtest/gtest.h` header must be available for the test program
   * Boost 1.65.1 or newer
     * The `boost/program_options.hpp` header must be available for the cli application
+  * cmake 3.8 or newer
+  * googletest 1.11.0 (e2239ee6 (HEAD, tag: release-1.11.0))
+    * The `gtest/gtest.h` header must be available for the test program
 
 ## Installed Packages
 
@@ -37,11 +36,13 @@ Project tree
 
 # Compilation
 
-From the root folder:
+From the root folder execute the following sequence:
   * `mkdir build`
   * `cd build`
   * `cmake ..`
   * `make`
+
+Binaries are generated in build/test and build/cli
 
 If compiling the code manually, include the following flags:
 
@@ -52,20 +53,22 @@ If compiling the code manually, include the following flags:
 
 # Sample Execution
 
-Test: the binary is located on AsyncTaskLib/build/test 
+Test: the binary is available in binaries/program_test 
 
 ```
- ./program_test       runs tests
+ ./program_test             runs tests
 ```
 
-Command line interface: the binary is located on AsyncTaskLib/build/cli 
+Command line interface: the binary is available in build/program_cli 
 
 ```
-./program_cli --help  displays program options
+./program_cli --help        displays program options
 ```
-
 ```
-./program_cli : start program
+./program_cli --task types  displays available task types
+```
+```
+./program_cli               start program
 ```
 
 Once the program is running, the following options are accepted:
@@ -80,7 +83,7 @@ Once the program is running, the following options are accepted:
 > quit                  gracefully shut down
 ```
 
-Task types supported (all task types have predefined parameters)
+Task types available (all task types have predefined parameters)
 
  | Task type | ID  |
  | --------- |:---:|
