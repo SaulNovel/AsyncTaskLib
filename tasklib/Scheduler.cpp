@@ -1,10 +1,9 @@
 #include "Scheduler.h"
 
-const std::vector<int> Scheduler::getTaskIds() const {
-    std::vector<int> task_ids;
-    task_ids.reserve(tasks_.size());
+const std::set<int> Scheduler::getTaskIds() const {
+    std::set<int> task_ids;
     for (auto& item : tasks_) {
-        task_ids.push_back(item.first);
+        task_ids.insert(item.first);
     }
 
     return task_ids;

@@ -7,16 +7,16 @@
 class StopException : public std::exception {
 public: 
     StopException(const std::string& message = "") noexcept 
-    : m_message_(message)
+    : message_(message)
     { }        
     virtual ~StopException() = default;
     
     const char* what() const noexcept {
-    	return m_message_.c_str();
+    	return message_.c_str();
     }
 
 private:
-    std::string m_message_;
+    std::string message_;
 };
 
 #endif

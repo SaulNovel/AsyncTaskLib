@@ -13,8 +13,6 @@
 namespace po = boost::program_options;
 using namespace std::chrono_literals;
 
-static Scheduler scheduler;
-
 enum class TaskType
 {
     test,
@@ -22,22 +20,31 @@ enum class TaskType
     fibonacci
 };
 
+static Scheduler scheduler;
+static std::unordered_map<int, TaskType> task_id_to_type;
+
+const static std::unordered_map<TaskType, std::string> task_type_to_str = {
+    {TaskType::test, "test"},
+    {TaskType::counter, "counter"},
+    {TaskType::fibonacci, "fibonacci"}
+};
+
 class TaskFactory {
 
 public:
 
-    Task& createTask(const int task_type_id) {
-        const TaskType task_type = static_cast<TaskType>(task_type_id);
+    Task& createTask(const TaskType task_type) {
 
+        // Values are predefined
         switch(task_type) {
         case TaskType::test:
             return scheduler.addTask<TestTask>(10ms);
         case TaskType::counter:
-            return scheduler.addTask<Counter>(1e3);
+            return scheduler.addTask<Counter>(1e5);
         case TaskType::fibonacci:
-            return scheduler.addTask<Fibonacci>(1e3);
+            return scheduler.addTask<Fibonacci>(20);
         default:
-            throw std::invalid_argument("Task type id: '" + std::to_string(task_type_id) + "' not supported");
+            throw std::invalid_argument("Task type id: '" + std::to_string(static_cast<int>(task_type)) + "' not supported");
         }
     }
 };
@@ -51,9 +58,11 @@ void start(const int task_type_id) {
     }
 
     TaskFactory task_factory;    
-    auto& task = task_factory.createTask(task_type_id);
+    const TaskType task_type = static_cast<TaskType>(task_type_id);
+    auto& task = task_factory.createTask(task_type);
 
-    std::cout << " -> " << task << std::endl;
+    task_id_to_type[task.id()] = task_type; 
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
 }
 
 void pause(const int task_id) {
@@ -64,7 +73,9 @@ void pause(const int task_id) {
 
     auto& task = scheduler.getTask(task_id);
     task.pause();
-    std::cout << " -> " << task << std::endl;
+
+    const TaskType task_type = task_id_to_type.at(task.id());
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
 }
 
 void resume(const int task_id) {
@@ -75,7 +86,9 @@ void resume(const int task_id) {
 
     auto& task = scheduler.getTask(task_id);
     task.resume();
-    std::cout << " -> " << task << std::endl;
+
+    const TaskType task_type = task_id_to_type.at(task.id());
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
 }
 
 void stop(const int task_id) {
@@ -86,47 +99,83 @@ void stop(const int task_id) {
 
     auto& task = scheduler.getTask(task_id);
     task.stop();
-    std::cout << " -> " << task << std::endl;
+
+    const TaskType task_type = task_id_to_type.at(task.id());
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
 }
 
 void status(const int task_id) {
     if (task_id == INVALID_TASK_ID) {
         for(int task_id : scheduler.getTaskIds()) {
             auto& task = scheduler.getTask(task_id);
-            std::cout << " -> " << task << std::endl;
+
+            const TaskType task_type = task_id_to_type.at(task.id());
+            std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
         }
         return;
     }
 
     auto& task = scheduler.getTask(task_id);
-    std::cout << " -> " << task << std::endl;
+
+    const TaskType task_type = task_id_to_type.at(task.id());
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
 }
 
+}
+
+std::string getHelpMessage() {
+    std::ostringstream message;
+    message << "Allowed actions: " << std::endl
+            << "  start <task_type_id>  starts a task of a given type and and prints its ID." << std::endl
+            << "  pause <task_id>       pause the task with the given id and print a confirmation message." << std::endl
+            << "  resume <task_id>      resume task with the given id (if paused) and print a confirmation message." << std::endl
+            << "  stop <task_id>        stop the task with the given id (if not stopped) and print a confirmation message." << std::endl
+            << "  status                prints the id, the status, progress and task type ID for each task." << std::endl
+            << "  status <task_id>      prints the id, the status, progress and task type ID for the task with the given id." << std::endl
+            << "  quit                  gracefully shut down." << std::endl;
+
+            return message.str();
+}
+
+std::string getTaskTypesMessage() {
+    std::ostringstream message;
+    message << "Task type  ID  Description" << std::endl
+            << "test       0   starts a dummy task that runs in an infinite loop." << std::endl
+            << "counter    1   starts a counter, the task stops when the count reaches a threshold." << std::endl
+            << "fibonacci  2   calculates fibonacci sequence." << std::endl
+            << std::endl << "Task parameters are predefined." << std::endl;
+
+            return message.str();
 }
 
 int main(int argc, char* argv[]) 
 {
-
     po::options_description desc("Allowed options");
     desc.add_options()
     ("help", "prints help message and instructions")
-    ("start <task_type_id>", "starts a task of a given type and and prints its ID")
-    ("start <task_type_id>", "starts a task of a given type and and prints its ID")
-    ("pause <task_id>", "pause the task with the given id and print a confirmation message")
-    ("resume <task_id>", "resume task with the given id (if paused) and print a confirmation message")
-    ("stop <task_id>", "stop the task with the given id (if not stopped) and print a confirmation message")
-    ("status", "prints the id, the status, progress and task type ID for each task")
-    ("status <task_id>", "prints the id, the status, progress and task type ID for the task with the given id")
-    ("quit", "gracefully shut down")
-    ;
+    ("task types", "prints supported task typed");
 
     po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
-    po::notify(vm);
 
-    if (!vm.empty()) {
-        std::cout << desc << std::endl;
-        return 0;  
+    try {
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);
+
+        if (vm.count("help")) {
+            std::cout << desc << std::endl << getHelpMessage() << std::endl;
+            return 0;  
+        }
+
+        if (vm.count("task types")) {
+            std::cout << getTaskTypesMessage() << std::endl;
+            return 0;  
+        }
+    }
+    catch (po::error &e)
+    {
+        std::cerr << e.what() << std::endl << std::endl;
+        std::cout << desc << std::endl << getHelpMessage() << std::endl;
+        return 0;
     }
 
     using CommandTable = std::unordered_map<std::string, std::function<void(int)>>;

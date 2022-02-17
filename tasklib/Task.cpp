@@ -10,7 +10,7 @@ namespace {
 }
 
 std::ostream& operator<<(std::ostream& os, Task& task) {
-    os << "Task: '" << task.id() << "' status: '" << statusToStr[task.status()]  << "' progress: " << task.progress() << "%";
+    os << "Task id: '" << task.id() << "' status: '" << statusToStr[task.status()]  << "' progress: " << task.progress() << "%";
     return os;
 }
 

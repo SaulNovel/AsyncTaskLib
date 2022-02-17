@@ -1,7 +1,7 @@
 #ifndef SCHEDULER
 #define SCHEDULER
 
-#include <vector>
+#include <set>
 
 #include "Task.h"
 
@@ -33,7 +33,7 @@ public:
         return taskRef;
     }
 
-    const std::vector<int> getTaskIds() const;
+    const std::set<int> getTaskIds() const;
 
     Task& getTask(const int id);
 };

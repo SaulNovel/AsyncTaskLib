@@ -8,16 +8,11 @@ class Fibonacci : public Task
 
 public:
     Fibonacci(const int id, const int num) 
-    : Task(id), num_(num), res_(0) 
+    : Task(id), num_(num), res_(0), progress_(0.0)
     {}
 
     double progress() override {
-        StateType state = status();
-        if (state == StateType::completed || state == StateType::stopped) {
-            return 100.0;
-        }
-
-        return 0.0;
+        return progress_;
     }
 
     int getResult() {
@@ -32,6 +27,7 @@ public:
 private:
     const int num_;
     std::atomic<int> res_;
+    std::atomic<double> progress_;
 
 private:
 
@@ -44,6 +40,7 @@ private:
 
     void execute() override {
         res_ = fibonacci(num_);
+        progress_ = 100.0;
     }
 
 };

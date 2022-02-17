@@ -54,10 +54,7 @@ private:
 public:
 
     Task(const int id) 
-    : id_(id), 
-    thread_(),
-    state_(StateType::running),
-    command_(CommandType::run)
+    : id_(id), thread_(), state_(StateType::running), command_(CommandType::run)
     {}
 
     virtual ~Task() {
