@@ -1,16 +1,16 @@
 #include "Task.h"
 
 namespace {
-    std::unordered_map<Task::StateType, std::string> statusToStr = {
-        {Task::StateType::running, "running"},
-        {Task::StateType::paused, "paused"},
-        {Task::StateType::stopped, "stopped"},
-        {Task::StateType::completed, "completed"},
+    std::unordered_map<int, std::string> statusToStr = {
+        {0, "running"},
+        {1, "paused"},
+        {2, "stopped"},
+        {3, "completed"},
     };
 }
 
 std::ostream& operator<<(std::ostream& os, Task& task) {
-    os << "Task id: '" << task.id() << "' status: '" << statusToStr[task.status()]  << "' progress: " << task.progress() << "%";
+    os << "Task id: '" << task.id() << "' status: '" << statusToStr[static_cast<int>(task.status())]  << "' progress: " << task.progress() << "%";
     return os;
 }
 

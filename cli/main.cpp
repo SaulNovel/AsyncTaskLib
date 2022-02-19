@@ -21,12 +21,12 @@ enum class TaskType
 };
 
 static Scheduler scheduler;
-static std::unordered_map<int, TaskType> task_id_to_type;
+static std::unordered_map<int, int> task_id_to_type;
 
-const static std::unordered_map<TaskType, std::string> task_type_to_str = {
-    {TaskType::test, "test"},
-    {TaskType::counter, "counter"},
-    {TaskType::fibonacci, "fibonacci"}
+const static std::unordered_map<int, std::string> task_type_to_str = {
+    {0, "test"},
+    {1, "counter"},
+    {2, "fibonacci"}
 };
 
 class TaskFactory {
@@ -61,8 +61,8 @@ void start(const int task_type_id) {
     const TaskType task_type = static_cast<TaskType>(task_type_id);
     auto& task = task_factory.createTask(task_type);
 
-    task_id_to_type[task.id()] = task_type; 
-    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
+    task_id_to_type[task.id()] = task_type_id; 
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type_id) << std::endl;
 }
 
 void pause(const int task_id) {
@@ -74,8 +74,7 @@ void pause(const int task_id) {
     auto& task = scheduler.getTask(task_id);
     task.pause();
 
-    const TaskType task_type = task_id_to_type.at(task.id());
-    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_id_to_type.at(task.id())) << std::endl;
 }
 
 void resume(const int task_id) {
@@ -87,8 +86,7 @@ void resume(const int task_id) {
     auto& task = scheduler.getTask(task_id);
     task.resume();
 
-    const TaskType task_type = task_id_to_type.at(task.id());
-    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_id_to_type.at(task.id())) << std::endl;
 }
 
 void stop(const int task_id) {
@@ -100,25 +98,30 @@ void stop(const int task_id) {
     auto& task = scheduler.getTask(task_id);
     task.stop();
 
-    const TaskType task_type = task_id_to_type.at(task.id());
-    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_id_to_type.at(task.id())) << std::endl;
 }
 
 void status(const int task_id) {
     if (task_id == INVALID_TASK_ID) {
+        /*
         for(int task_id : scheduler.getTaskIds()) {
             auto& task = scheduler.getTask(task_id);
 
-            const TaskType task_type = task_id_to_type.at(task.id());
-            std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
+            std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_id_to_type.at(task.id())) << std::endl;
+        }
+        return;
+        */
+
+        for(auto task_ref_wrapper : scheduler.getTasks()) {
+            auto& task = task_ref_wrapper.get();
+            std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_id_to_type.at(task.id())) << std::endl;
         }
         return;
     }
 
     auto& task = scheduler.getTask(task_id);
 
-    const TaskType task_type = task_id_to_type.at(task.id());
-    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_type) << std::endl;
+    std::cout << " -> " << task << " task_type: " << task_type_to_str.at(task_id_to_type.at(task.id())) << std::endl;
 }
 
 }

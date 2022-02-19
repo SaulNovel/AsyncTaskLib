@@ -56,12 +56,30 @@ If compiling the code manually, include the following flags:
 Test: the binary is available in binaries/program_test 
 
 ```
+ldd program_test 
+        linux-vdso.so.1 (0x00007fffdad60000)
+        libstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fa8de290000)
+        libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fa8ddef0000)
+        libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fa8ddcd0000)
+        libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fa8ddab0000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fa8dd6b0000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007fa8dea00000)
+
  ./program_test             runs tests
 ```
 
-Command line interface: the binary is available in build/program_cli 
+Command line interface: the binary is available in binaries/program_cli 
 
 ```
+ldd program_cli 
+        linux-vdso.so.1 (0x00007fffc0014000)
+        libstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f0f0c5e0000)
+        libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f0f0c240000)
+        libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f0f0c020000)
+        libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f0f0be00000)
+        libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f0f0ba00000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f0f0cc00000)
+
 ./program_cli --help        displays program options
 ```
 ```
