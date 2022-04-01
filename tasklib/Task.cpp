@@ -92,7 +92,7 @@ void Task::joinTask() {
 
 void Task::join() {
     if (thread_.joinable()) {
-            thread_.join();
+        thread_.join();
     }
 }
 

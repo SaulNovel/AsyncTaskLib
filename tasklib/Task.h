@@ -57,13 +57,7 @@ public:
     : id_(id), thread_(), state_(StateType::running), command_(CommandType::run)
     {}
 
-    virtual ~Task() {
-        if (command_ != CommandType::stop) {
-            stop();
-        }
-
-        join();
-    }
+    virtual ~Task() = default;
 
     Task (const Task&) = delete;
     Task& operator= (const Task&) = delete;

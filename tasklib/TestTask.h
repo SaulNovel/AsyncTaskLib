@@ -12,6 +12,10 @@ public:
     {
     }
 
+    ~TestTask() {
+        join();
+    }
+
     double progress() override {
         StateType state = status();
         if (state == StateType::completed || state == StateType::stopped) {
